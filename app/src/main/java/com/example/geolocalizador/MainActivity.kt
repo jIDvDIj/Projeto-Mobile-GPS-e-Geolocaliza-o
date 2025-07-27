@@ -62,6 +62,7 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("MissingPermission")
 @Composable
 fun MapsScreen(fusedLocationClient: FusedLocationProviderClient) {
+    val IFPELocation = LatLng(-8.8768, -36.4631)
     val defaultLocation = LatLng(-8.05, -34.9)
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(defaultLocation, 12f)
@@ -123,9 +124,27 @@ fun MapsScreen(fusedLocationClient: FusedLocationProviderClient) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(60.dp)
+                .navigationBarsPadding(),
             verticalArrangement = Arrangement.Bottom
         ) {
+            // Botão superior – traçar rota até o IFPE
+            Button(
+                onClick = {
+                    userLocation?.let { origem ->
+                        val uri = Uri.parse(
+                            "https://www.google.com/maps/dir/?api=1&origin=${origem.latitude},${origem.longitude}&destination=${IFPELocation.latitude},${IFPELocation.longitude}&travelmode=driving"
+                        )
+                        val intent = Intent(Intent.ACTION_VIEW, uri)
+                        intent.setPackage("com.google.android.apps.maps")
+                        context.startActivity(intent)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Rota até o IFPE")
+            }
+
             Button(
                 onClick = {
                     userLocation?.let { origem ->
