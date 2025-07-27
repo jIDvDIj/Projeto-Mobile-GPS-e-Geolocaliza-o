@@ -36,6 +36,11 @@ import android.net.Uri
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 class MainActivity : ComponentActivity() {
@@ -62,13 +67,13 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("MissingPermission")
 @Composable
 fun MapsScreen(fusedLocationClient: FusedLocationProviderClient) {
-    val IFPELocation = LatLng(-8.8768, -36.4631)
-    val defaultLocation = LatLng(-8.05, -34.9)
+    val localIFPE = LatLng(-8.8768, -36.4631)
+    val localPadrao = LatLng(-8.05, -34.9)
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(defaultLocation, 12f)
+        position = CameraPosition.fromLatLngZoom(localPadrao, 12f)
     }
 
-    var userLocation by remember { mutableStateOf<LatLng?>(null) }
+    var localUsuario by remember { mutableStateOf<LatLng?>(null) }
     var destino by remember { mutableStateOf<LatLng?>(null) }
 
     val context = LocalContext.current
@@ -83,7 +88,7 @@ fun MapsScreen(fusedLocationClient: FusedLocationProviderClient) {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 location?.let {
                     val latLng = LatLng(it.latitude, it.longitude)
-                    userLocation = latLng
+                    localUsuario = latLng
                     cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
                 }
             }
@@ -97,7 +102,7 @@ fun MapsScreen(fusedLocationClient: FusedLocationProviderClient) {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 location?.let {
                     val latLng = LatLng(it.latitude, it.longitude)
-                    userLocation = latLng
+                    localUsuario = latLng
                     cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
                 }
             }
@@ -128,12 +133,34 @@ fun MapsScreen(fusedLocationClient: FusedLocationProviderClient) {
                 .navigationBarsPadding(),
             verticalArrangement = Arrangement.Bottom
         ) {
+            destino?.let {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White.copy(alpha = 0.9f) // Fundo branco com transparência
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                ) {
+                    Text(
+                        text = "Coordenadas: Lat ${"%.5f".format(it.latitude)}, Lng ${"%.5f".format(it.longitude)}",
+                        modifier = Modifier.padding(12.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Black
+                    )
+                }
+            }
+
             // Botão superior – traçar rota até o IFPE
             Button(
                 onClick = {
-                    userLocation?.let { origem ->
+                    localUsuario?.let { origem ->
                         val uri = Uri.parse(
-                            "https://www.google.com/maps/dir/?api=1&origin=${origem.latitude},${origem.longitude}&destination=${IFPELocation.latitude},${IFPELocation.longitude}&travelmode=driving"
+                            "https://www.google.com/maps/dir/?api=1&origin=${origem.latitude},${origem.longitude}&destination=${localIFPE.latitude},${localIFPE.longitude}&travelmode=driving"
                         )
                         val intent = Intent(Intent.ACTION_VIEW, uri)
                         intent.setPackage("com.google.android.apps.maps")
@@ -147,7 +174,7 @@ fun MapsScreen(fusedLocationClient: FusedLocationProviderClient) {
 
             Button(
                 onClick = {
-                    userLocation?.let { origem ->
+                    localUsuario?.let { origem ->
                         destino?.let { destinoLatLng ->
                             val uri = Uri.parse(
                                 "https://www.google.com/maps/dir/?api=1&origin=${origem.latitude},${origem.longitude}&destination=${destinoLatLng.latitude},${destinoLatLng.longitude}&travelmode=driving"
